@@ -1,0 +1,81 @@
+import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Restaurante QR',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: HomePage(),
+    );
+  }
+}
+
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int numRefeicoes = 35;
+  QRViewController? controller;
+
+  void usarRefeicao() {
+    setState(() {
+      if (numRefeicoes > 0) {
+        numRefeicoes--;
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Restaurante QR'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: QRView(
+              key: GlobalKey(debugLabel: 'QR'),
+              onQRViewCreated: (controller) {
+                this.controller = controller;
+                controller.scannedDataStream.listen((scanData) {
+                  // Verifica o conteúdo do QR code e debita uma refeição
+                  if (scanData != null && scanData.isNotEmpty) {
+                    usarRefeicao();
+                    // Você pode adicionar mais lógica aqui, como chamar uma API para registrar a refeição utilizada.
+                  }
+                });
+              },
+            ),
+          ),
+          SizedBox(height: 20.0),
+          Text('Refeições restantes: $numRefeicoes'),
+          SizedBox(height: 20.0),
+          RaisedButton(
+            onPressed: () {
+              if (controller != null) {
+                controller!.toggleFlash();
+              }
+            },
+            child: Text('Toggle Flash'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+}
